@@ -76,7 +76,7 @@ public class JDBCProductRepositoryImpl implements ProductRepository {
 
         try(Connection conn = dataSource.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, productName);
+            ps.setString(1, "%"+productName+"%");
             List<Product> productList = new ArrayList<>();
             Product product = null;
             ResultSet rs = ps.executeQuery();
