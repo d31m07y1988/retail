@@ -12,6 +12,10 @@ public class ProductServiceImpl implements ProductService {
 
     ProductRepository repository;
 
+    public void setRepository(ProductRepository repository) {
+        this.repository = repository;
+    }
+
     @Override
     public Product fetch(long id) {
         return repository.get(id);
@@ -33,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Boolean sell(long id, int count) {
+    public boolean sell(long id, int count) {
         Product oldProduct = fetch(id);
         if (oldProduct != null && oldProduct.getCount() - count >= 0) {
             oldProduct.setCount(oldProduct.getCount() - count);

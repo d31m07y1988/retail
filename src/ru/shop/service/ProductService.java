@@ -13,5 +13,5 @@ public interface ProductService {
     List<Product> fetchAll();
     List<Product> findByName(String productName);
     void update(Product product);
-    Boolean sell(long id, int count);
+    boolean sell(long id, int count);
 }

@@ -45,4 +45,9 @@ public class Product {
         this.price = price;
         this.count = count;
     }
+
+    @Override
+    public String toString() {
+        return "арт." + id +"\t"+ name + "\t" + price + "руб.\t" + count+"шт.";
+    }
 }
