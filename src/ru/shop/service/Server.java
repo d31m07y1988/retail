@@ -7,6 +7,7 @@ import ru.shop.model.Product;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,7 @@ public class Server {
             logger.info("Сервер стартовал");
             while (true) {
                 Socket socket = clientListener.accept();
-                logger.info("Подключился клиент");
+                logger.info("Соединение с клиентом установлено");
                 incomeClients newClient = server.new incomeClients(socket);
                 newClient.start();
             }
@@ -51,8 +52,9 @@ public class Server {
 
         @Override
         public void run() {
+            String sellerId = null;
             try (Connection connection = new Connection(socket)) {
-                String sellerId = serverHandshake(connection);
+                sellerId = serverHandshake(connection);
 
                 while (true) {
                     String sellerRequest = connection.receive();
@@ -81,7 +83,11 @@ public class Server {
                 }
 
                 logger.info("Клиент отключился");
-
+            } catch (SocketException e) {
+                System.err.println("Связь с клиентом утеряна");
+                if(sellerId!=null) {
+                    connectedClients.remove(sellerId);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

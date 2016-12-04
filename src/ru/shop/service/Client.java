@@ -4,52 +4,51 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Date;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Created by Ramil on 30.11.2016.
  */
 public class Client {
 
-    private int serverPort;
-    private Socket socket;
-    private Connection connection;
-
-    public Client(int port) {
-        serverPort = port;
-        try {
-            socket = new Socket("localhost", serverPort);
-            connection = new Connection(socket);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public Client() {
     }
 
     public static void main(String[] args) {
-        Client client = new Client(13667);
-        ServerMessageGetter messageGetter = client.new ServerMessageGetter();
-        messageGetter.setDaemon(true);
-        messageGetter.start();
+        Client client = new Client();
 
-        try {
-            client.connection.send(new Date().toString());
-        } catch (IOException e) {
-            System.err.println("идентификатор не отправлен");
-        }
+        try (Socket socket = new Socket("localhost", 13667);
+             Connection connection = new Connection(socket);
+             BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in))) {
 
-        try (BufferedReader keyboardReader = new BufferedReader(new InputStreamReader(System.in))) {
+            ServerMessageGetter messageGetter = client.new ServerMessageGetter(connection);
+            messageGetter.setDaemon(true);
+            messageGetter.start();
+
+            connection.send(new Date().toString());
+
             String message = "";
             while (!"exit".equalsIgnoreCase(message)) {
                 message = keyboardReader.readLine();
-                client.connection.send(message);
+                connection.send(message);
             }
-
-        } catch (Exception e) {
+            sleep(10);
+        } catch (SocketException e) {
+            System.err.println("связь с сервером утеряна1");
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
     private class ServerMessageGetter extends Thread {
+        private Connection connection;
+
+        public ServerMessageGetter(Connection connection) {
+            this.connection = connection;
+        }
 
         @Override
         public void run() {
@@ -59,6 +58,8 @@ public class Client {
                     if (serverMessage != null)
                         System.out.println(serverMessage);
                 }
+            }  catch (SocketException e) {
+                System.err.println("связь с сервером утеряна2");
             } catch (IOException e) {
                 e.printStackTrace();
             }
